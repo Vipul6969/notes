@@ -1,14 +1,18 @@
-import { create } from "domain";
+
 
 const ROOTS = {
   LOGIN: "/login",
   DASHBOARD: "/dashboard",
-  REGISTER: "/register"
+  REGISTER: "/register",
+  LOGOUT: "/logout",
 };
 
 export const paths = {
   login: {
     root: ROOTS.LOGIN,
+  },
+  logout: {
+    root: ROOTS.LOGOUT,
   },
   register: {
     root: ROOTS.REGISTER,

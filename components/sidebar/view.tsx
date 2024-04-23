@@ -5,7 +5,10 @@ import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 import { SidebarNavItem } from "@/types/nav";
 import { useRouter } from "next/navigation";
-
+import { paths } from "@/paths";
+import { AuthContext } from "@/provider/AuthProvider";
+import { signOut } from "firebase/auth";
+import { auth } from "@/service/firebase";
 
 export interface DocsSidebarNavProps {
   items: SidebarNavItem[];
@@ -14,15 +17,31 @@ export interface DocsSidebarNavProps {
 export function Sidebar({ items }: DocsSidebarNavProps) {
   const [sidebarVisible, setSidebarVisible] = useState(true);
   const pathname = usePathname();
-  const router = useRouter();
+  const { user }: any = AuthContext();
 
-  const handleClick = async () => {
-    console.log("in func")
-   
-};
+  const handleClickLogin = async () => {
+    console.log("in func");
+    window.location.href = paths.login.root;
+  };
+
+  const handleClickSignUp = async () => {
+    console.log("in func");
+    window.location.href = paths.register.root;
+  };
+
+  const handleClickLogout = async () => {
+    signOut(auth)
+      .then((response) => {
+        console.log("response:", response);
+        window.location.href = "/login";
+      })
+      .catch((e) => {
+        console.log(e);
+      });
+  };
 
   const divStyle: React.CSSProperties = {
-  //
+    //
   };
 
   return (
@@ -36,13 +55,41 @@ export function Sidebar({ items }: DocsSidebarNavProps) {
           <div className="flex items-center">
             <h1 className="text-xl font-semibold ml-2">Notes</h1>
           </div>
-          <Button variant="secondary" size="sm" className="hidden md:block" onClick={handleClick}>
-            Login / Sign Up
-          </Button>
+          {!user?.isLogin && (
+            <>
+              <Button
+                variant="secondary"
+                size="sm"
+                className="hidden md:block"
+                onClick={handleClickLogin}
+              >
+                Log in
+              </Button>
+
+              <Button
+                variant="secondary"
+                size="sm"
+                className="hidden md:block"
+                onClick={handleClickSignUp}
+              >
+                Sign Up
+              </Button>
+            </>
+          )}
+          {user?.isLogin && (
+            <Button
+              variant="secondary"
+              size="sm"
+              className="hidden md:block"
+              onClick={handleClickLogout}
+            >
+              Logout
+            </Button>
+          )}
         </div>
         <div className="flex-grow overflow-y-auto">
           <div className="p-4">
-            <Button variant="outline" className="w-full" onClick={handleClick}>
+            <Button variant="outline" className="w-full">
               New Note
             </Button>
           </div>
@@ -144,7 +191,7 @@ export function DocsSidebarNavItems({
               border: item.disabled ? "none" : "1px solid #cbd5e0",
               color: item.disabled ? "#718096" : "#4a5568",
               transition: "width 0.3s ease-in-out",
-              cursor:"pointer"
+              cursor: "pointer",
             }}
           >
             <span

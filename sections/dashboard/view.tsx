@@ -5,7 +5,6 @@ import { Sidebar } from "../../components/sidebar/view";
 import { docsConfig } from "@/config/docs";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Apple } from "lucide-react";
 import { CardFooter } from "@/components/ui/card";
 import { CardContent } from "@/components/ui/card";
 
