@@ -4,7 +4,6 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 import { SidebarNavItem } from "@/types/nav";
-import { useRouter } from "next/navigation";
 import { paths } from "@/paths";
 import { AuthContext } from "@/provider/AuthProvider";
 import { signOut } from "firebase/auth";
@@ -44,6 +43,10 @@ export function Sidebar({ items }: DocsSidebarNavProps) {
     //
   };
 
+  const handleNew = () => {
+    window.location.href = paths.create.root;
+  };
+
   return (
     <div className="h-full flex" style={divStyle}>
       <div
@@ -53,7 +56,7 @@ export function Sidebar({ items }: DocsSidebarNavProps) {
       >
         <div className="flex justify-between items-center p-4 border-b border-gray-200">
           <div className="flex items-center">
-            <h1 className="text-xl font-semibold ml-2">Notes</h1>
+            <h1 className="text-xl font-semibold ml-2">Notefy me!</h1>
           </div>
           {!user?.isLogin && (
             <>
@@ -89,7 +92,7 @@ export function Sidebar({ items }: DocsSidebarNavProps) {
         </div>
         <div className="flex-grow overflow-y-auto">
           <div className="p-4">
-            <Button variant="outline" className="w-full">
+            <Button variant="outline" className="w-full" onClick={handleNew}>
               New Note
             </Button>
           </div>

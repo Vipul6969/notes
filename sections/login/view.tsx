@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/service/firebase";
-import { paths } from "@/paths";
 
 const Login = () => {
   const [email, setEmail] = useState("");

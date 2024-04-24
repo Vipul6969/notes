@@ -1,10 +1,9 @@
-
-
 const ROOTS = {
   LOGIN: "/login",
   DASHBOARD: "/dashboard",
   REGISTER: "/register",
   LOGOUT: "/logout",
+  NOTES: "/notes",
 };
 
 export const paths = {
@@ -19,6 +18,8 @@ export const paths = {
   },
   dashboard: {
     root: ROOTS.DASHBOARD,
-    create: `${ROOTS.DASHBOARD}/notes/create`,
+  },
+  create: {
+    root: `${ROOTS.NOTES}/create`,
   },
 };
