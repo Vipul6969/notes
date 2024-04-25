@@ -21,5 +21,6 @@ export const paths = {
   },
   create: {
     root: `${ROOTS.NOTES}/create`,
+    voice: `${ROOTS.NOTES}/create/voice`,
   },
 };

@@ -1,14 +1,12 @@
 "use client";
 
-import React, { useState, ChangeEvent } from "react";
-import { Sidebar } from "../../components/sidebar/view";
+import React, { useState } from "react";
+import { Sidebar } from "@/components/sidebar/view";
 import { docsConfig } from "@/config/docs";
-import { EditorState, ContentState, convertToRaw } from "draft-js";
-import { Remarkable } from "remarkable";
-import "remarkable/lib/index.js";
-import "remarkable/dist/remarkable.min.css";
 import MdEditor from "react-markdown-editor-lite";
+import { Button } from "@/components/ui/button";
 import "react-markdown-editor-lite/lib/index.css";
+import { Remarkable } from "remarkable";
 
 interface Tag {
   id: number;
@@ -18,12 +16,10 @@ interface Tag {
 export default function Create() {
   const [tags, setTags] = useState<Tag[]>([]);
   const [tagInput, setTagInput] = useState<string>("");
-  const [editorState, setEditorState] = useState<EditorState>(() =>
-    EditorState.createEmpty()
-  );
+  const [editorText, setEditorText] = useState<string>("");
   const mdParser = new Remarkable();
 
-  const handleTagInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+  const handleTagInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setTagInput(event.target.value);
   };
 
@@ -35,64 +31,97 @@ export default function Create() {
     }
   };
 
-  const onChange = (newEditorState: EditorState) => {
-    setEditorState(newEditorState);
+  const handleEditorChange = ({ text }: { text: string }) => {
+    setEditorText(text);
   };
 
   const saveNote = async () => {
-    try {
-      const contentState: ContentState = editorState.getCurrentContent();
-      const content = convertToRaw(contentState);
-      // Send HTTP request to save note with 'content' and 'tags'
-      console.log("Note content:", content);
-      console.log("Tags:", tags);
-    } catch (error) {
-      console.error("Error saving note:", error);
-    }
+    console.log("Note content:", editorText);
+    console.log("Tags:", tags);
   };
 
   return (
     <div style={{ display: "flex", height: "100vh" }}>
-      <div style={{ flex: "0 0 20%", minWidth: "200px" }}>
-        <Sidebar items={docsConfig.sidebarNav} />
-      </div>
+      <Sidebar items={docsConfig.sidebarNav} />
       <div
         style={{
-          flex: "1",
+          flex: 1,
           padding: "20px",
           display: "flex",
           flexDirection: "column",
         }}
       >
-        <div>
-          <input
-            type="text"
-            value={tagInput}
-            onChange={handleTagInputChange}
-            placeholder="Enter tags"
-          />
-          <button onClick={handleAddTag}>Add Tag</button>
+        <i>Create Notes</i>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "space-between",
+          }}
+        >
+          <div style={{ flex: 1, padding: "1rem" }}>
+            <MdEditor
+              style={{ height: 300 }}
+              value={editorText}
+              renderHTML={(text) => mdParser.render(text)}
+              onChange={handleEditorChange}
+            />
+            <div
+              style={{
+                marginTop: "1rem ",
+                display: "flex",
+                justifyContent: "flex-end",
+              }}
+            >
+              <Button variant="outline" onClick={saveNote}>
+                Save Note
+              </Button>
+            </div>
+          </div>
+          <div
+            style={{
+              width: 300,
+              marginLeft: 20,
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            <div style={{ marginBottom: 10 }}>
+              <input
+                type="text"
+                value={tagInput}
+                onChange={handleTagInputChange}
+                placeholder="Enter tags"
+              />
+              <Button variant="outline" size="sm" onClick={handleAddTag}>
+                Add Tag
+              </Button>
+            </div>
+            <div>
+              {tags.map((tag) => (
+                <span
+                  key={tag.id}
+                  style={{
+                    display: "inline-block",
+                    background: "#e1e1e1",
+                    borderRadius: "4px",
+                    padding: "6px 12px",
+                    margin: "0 4px 4px 0",
+                    transition: "background 0.3s",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "#ccc";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "#e1e1e1";
+                  }}
+                >
+                  {tag.name}
+                </span>
+              ))}
+            </div>
+          </div>
         </div>
-        <div>
-          {tags.map((tag) => (
-            <span key={tag.id}>{tag.name}</span>
-          ))}
-        </div>
-        <div style={{ flex: "1", marginTop: "20px" }}>
-          <h3>Markdown Editor:</h3>
-          <MdEditor
-            value={editorState.getCurrentContent().getPlainText()}
-            renderHTML={(text) => mdParser.render(text)}
-            onChange={({ text }) =>
-              setEditorState(
-                EditorState.createWithContent(
-                  ContentState.createFromText(text)
-                )
-              )
-            }
-          />
-        </div>
-        <button onClick={saveNote}>Save Note</button>
       </div>
     </div>
   );

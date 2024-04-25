@@ -28,6 +28,10 @@ export function Sidebar({ items }: DocsSidebarNavProps) {
     window.location.href = paths.register.root;
   };
 
+  const handleVoice = () => {
+    window.location.href = paths.create.voice;
+  };
+
   const handleClickLogout = async () => {
     signOut(auth)
       .then((response) => {
@@ -50,46 +54,16 @@ export function Sidebar({ items }: DocsSidebarNavProps) {
   return (
     <div className="h-full flex" style={divStyle}>
       <div
-        className={`flex-shrink-0 w-64 bg-white border-r border-gray-200 ${
+        className={`flex flex-col h-full w-64 bg-white border-r border-gray-200 ${
           sidebarVisible ? "" : "hidden"
         }`}
       >
-        <div className="flex justify-between items-center p-4 border-b border-gray-200">
+        <div className="p-4">
           <div className="flex items-center">
-            <h1 className="text-xl font-semibold ml-2">Notefy me!</h1>
+            <h1 className="text-xl font-semibold ml-2">Notefy Master!</h1>
           </div>
-          {!user?.isLogin && (
-            <>
-              <Button
-                variant="secondary"
-                size="sm"
-                className="hidden md:block"
-                onClick={handleClickLogin}
-              >
-                Log in
-              </Button>
-
-              <Button
-                variant="secondary"
-                size="sm"
-                className="hidden md:block"
-                onClick={handleClickSignUp}
-              >
-                Sign Up
-              </Button>
-            </>
-          )}
-          {user?.isLogin && (
-            <Button
-              variant="secondary"
-              size="sm"
-              className="hidden md:block"
-              onClick={handleClickLogout}
-            >
-              Logout
-            </Button>
-          )}
         </div>
+
         <div className="flex-grow overflow-y-auto">
           <div className="p-4">
             <Button variant="outline" className="w-full" onClick={handleNew}>
@@ -109,17 +83,52 @@ export function Sidebar({ items }: DocsSidebarNavProps) {
             ))}
           </div>
         </div>
+
         <div className="p-4">
-          <Button variant="outline" className="w-full mb-2">
+          <Button
+            variant="outline"
+            className="w-full mb-2"
+            onClick={handleVoice}
+          >
             Voice Note
           </Button>
           <Button variant="outline" className="w-full">
             Settings
           </Button>
         </div>
+
+        {/* Footer area for login/logout */}
+        <div className="p-4 w-full border-t border-gray-200 mt-auto">
+          {!user?.isLogin ? (
+            <>
+              <Button
+                variant="secondary"
+                className="w-full mb-2"
+                onClick={handleClickLogin}
+              >
+                Log in
+              </Button>
+              <Button
+                variant="secondary"
+                className="w-full"
+                onClick={handleClickSignUp}
+              >
+                Sign Up
+              </Button>
+            </>
+          ) : (
+            <Button
+              variant="secondary"
+              className="w-full"
+              onClick={handleClickLogout}
+            >
+              Logout
+            </Button>
+          )}
+        </div>
       </div>
-      <div className="flex-grow"></div>
-      <div className="absolute top-4 right-4 z-10">
+
+      <div className="relative top-4 right-4 z-10">
         <Button
           variant="outline"
           onClick={() => setSidebarVisible(!sidebarVisible)}
