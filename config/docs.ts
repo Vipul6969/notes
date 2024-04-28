@@ -12,8 +12,9 @@ export const docsConfig: DocsConfig = {
       items: [
         {
           title: "Notes",
-          icon: "radix", // using the icon key string
+          icon: "radix", 
           items: [],
+          // href: "/dashboard"
         },
         {
           title: "Tags",

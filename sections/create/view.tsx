@@ -1,5 +1,6 @@
 "use client";
 
+import { postAsync } from "@/utilities/page";
 import React, { useState } from "react";
 import { Sidebar } from "@/components/sidebar/view";
 import { docsConfig } from "@/config/docs";
@@ -36,8 +37,20 @@ export default function Create() {
   };
 
   const saveNote = async () => {
-    console.log("Note content:", editorText);
-    console.log("Tags:", tags);
+    try {
+      const data = {
+        content: editorText,
+        title: "Your title", 
+        tags: tags.map((tag) => tag.name),
+      };
+      const response = await postAsync<any>(
+        "http://localhost:3000/notes/create",
+        data
+      );
+      console.log("Note saved successfully:", response);
+    } catch (error) {
+      console.error("Error saving note:", error);
+    }
   };
 
   return (

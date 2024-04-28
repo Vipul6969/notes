@@ -1,53 +1,96 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Sidebar } from "../../components/sidebar/view";
 import { docsConfig } from "@/config/docs";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { CardFooter } from "@/components/ui/card";
 import { CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { AuthContext } from "@/provider/AuthProvider";
+import { getAsync, putAsync, deleteAsync } from "@/utilities/page";
+import {
+  Dialog,
+  DialogOverlay,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+
+import { v4 as uuidv4 } from "uuid";
+
+
+interface Note {
+  id: string;
+  title: string;
+  content: string;
+  tags?: string[];
+}
 
 export default function Dashboard() {
   const { user }: any = AuthContext();
+  const [notes, setNotes] = useState<any[] | undefined>(undefined);
 
-  const notes = [
-    {
-      id: 1,
-      title: "Meeting Notes",
-      content: "Discuss project timelines",
-      icon: "📅",
-    },
-    { id: 2, title: "Ideas", content: "Brainstorm new features", icon: "💡" },
-    {
-      id: 3,
-      title: "To-Do List",
-      content: "Complete tasks by EOD",
-      icon: "📝",
-    },
-    {
-      id: 4,
-      title: "Personal Reminders",
-      content: "Buy groceries",
-      icon: "🛒",
-    },
-    {
-      id: 5,
-      title: "Goals",
-      content: "Plan for the upcoming week",
-      icon: "🎯",
-    },
-  ];
+  const [editNote, setEditNote] = useState({
+    id: uuidv4(),
+    title: "",
+    content: "",
+    tags: [],
+  });
+  const [deleteNoteId, setDeleteNoteId] = useState(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  const getNotes = async () => {
+    try {
+      const notesData = await getAsync<any[]>("http://localhost:3000");
+      setNotes(notesData);
+    } catch (error) {
+      console.error("Error fetching notes:", error);
+    }
+  };
+
+  useEffect(() => {
+    getNotes();
+  }, []);
+
+  const handleEditNote = async () => {
+    try {
+      const updatedNote = await putAsync<any>(
+        `http://localhost:3000/dashboard/${editNote.id}`,
+        {
+          title: editNote.title,
+          content: editNote.content,
+          tags: editNote.tags || [],
+        }
+      );
+      console.log("Updated Note:", updatedNote);
+      setEditDialogOpen(false);
+      setNotes(
+        notes?.map((note) => (note.id === editNote.id ? updatedNote : note))
+      );
+    } catch (error) {
+      console.error("Error updating note:", error);
+    }
+  };
+
+  const handleDeleteNote = async () => {
+    try {
+      const response = await deleteAsync<any>(
+        `http://localhost:3000/dashboard/${deleteNoteId}`
+      );
+      console.log("Delete Note Response:", response);
+      setDeleteDialogOpen(false);
+      setNotes(notes?.filter((note) => note.id !== deleteNoteId));
+    } catch (error) {
+      console.error("Error deleting note:", error);
+    }
+  };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        minHeight: "100vh",
-        // border:"20px solid red",
-      }}
-    >
+    <div style={{ display: "flex", minHeight: "100vh" }}>
       <div style={{ flex: "0 0 10%" }}>
         <Sidebar items={docsConfig.sidebarNav} />
       </div>
@@ -55,7 +98,7 @@ export default function Dashboard() {
         <div
           style={{
             flex: 1,
-            backgroundImage: `notes\public\galaxy.jpg`,
+            backgroundImage: `url(notes/public/galaxy.jpg)`,
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
@@ -69,7 +112,7 @@ export default function Dashboard() {
               padding: "2rem",
             }}
           >
-            {notes.map((note) => (
+            {notes?.map((note) => (
               <Card
                 key={note.id}
                 style={{
@@ -127,7 +170,14 @@ export default function Dashboard() {
                 >
                   <Button
                     variant="outline"
-                    onClick={() => console.log("Edit clicked")}
+                    onClick={() => {
+                      setEditNote({
+                        id: note.id,
+                        title: note.title,
+                        content: note.content,
+                      });
+                      setEditDialogOpen(true);
+                    }}
                     style={{ flex: "1 1 auto" }}
                   >
                     Edit
@@ -135,7 +185,10 @@ export default function Dashboard() {
 
                   <Button
                     variant="outline"
-                    onClick={() => console.log("Delete clicked")}
+                    onClick={() => {
+                      setDeleteNoteId(note.id);
+                      setDeleteDialogOpen(true);
+                    }}
                     style={{ flex: "1 1 auto", marginLeft: "10px" }}
                   >
                     Delete
@@ -175,6 +228,92 @@ export default function Dashboard() {
           </p>
         </div>
       )}
+      {editDialogOpen && (
+        <DialogOverlay>
+          <EditNoteDialog
+            isOpen={editDialogOpen}
+            onClose={() => setEditDialogOpen(false)}
+            editNote={editNote}
+            setEditNote={setEditNote}
+            handleEditNote={handleEditNote}
+          />
+        </DialogOverlay>
+      )}
+      {/* Delete dialog */}
+      {deleteDialogOpen && (
+        <DialogOverlay>
+          <DeleteNoteDialog
+            isOpen={deleteDialogOpen}
+            onClose={() => setDeleteDialogOpen(false)}
+            handleDeleteNote={handleDeleteNote}
+          />
+        </DialogOverlay>
+      )}
     </div>
+  );
+}
+
+interface EditNoteDialog{
+  isOpen: any,
+  onClose:any,
+
+}
+
+// EditNoteDialog component
+export function EditNoteDialog({
+  isOpen,
+  onClose,
+  editNote,
+  setEditNote,
+  handleEditNote,
+}) {
+  return (
+    <Dialog open={isOpen} onClose={onClose}>
+      <DialogHeader>
+        <DialogTitle>Edit Note</DialogTitle>
+      </DialogHeader>
+      <DialogContent>
+        {/* Your form inputs for editing */}
+        <input
+          type="text"
+          value={editNote.title}
+          onChange={(e) => setEditNote({ ...editNote, title: e.target.value })}
+        />
+        <textarea
+          value={editNote.content}
+          onChange={(e) =>
+            setEditNote({ ...editNote, content: e.target.value })
+          }
+        />
+      </DialogContent>
+      <DialogFooter>
+        <Button variant="outline" onClick={onClose}>
+          Cancel
+        </Button>
+        <Button onClick={handleEditNote}>Save</Button>
+      </DialogFooter>
+    </Dialog>
+  );
+}
+
+// DeleteNoteDialog component
+export function DeleteNoteDialog({ isOpen, onClose, handleDeleteNote }) {
+  return (
+    <Dialog open={isOpen} onClose={onClose}>
+      <DialogHeader>
+        <DialogTitle>Confirm Delete</DialogTitle>
+      </DialogHeader>
+      <DialogContent>
+        <DialogDescription>
+          Are you sure you want to delete this note?
+        </DialogDescription>
+      </DialogContent>
+      <DialogFooter>
+        <Button variant="outline" onClick={onClose}>
+          Cancel
+        </Button>
+        <Button onClick={handleDeleteNote}>Delete</Button>
+      </DialogFooter>
+    </Dialog>
   );
 }
