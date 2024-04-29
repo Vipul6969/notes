@@ -1,13 +1,21 @@
+"use client";
+
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 import { SidebarNavItem } from "@/types/nav";
 import { paths } from "@/paths";
 import { AuthContext } from "@/provider/AuthProvider";
 import { signOut } from "firebase/auth";
 import { auth } from "@/service/firebase";
+import { IoMdLogIn } from "react-icons/io";
+import { IoMdPersonAdd } from "react-icons/io";
+import { TbLogout2 } from "react-icons/tb";
+import { FaMicrophoneLines } from "react-icons/fa6";
+import { FaArrowCircleLeft } from "react-icons/fa";
+import { FaArrowCircleRight } from "react-icons/fa";
+import { FaStickyNote } from "react-icons/fa";
 
 export interface DocsSidebarNavProps {
   items: SidebarNavItem[];
@@ -18,13 +26,11 @@ export function Sidebar({ items }: DocsSidebarNavProps) {
   const pathname = usePathname();
   const { user }: any = AuthContext();
 
-  const handleClickLogin = async () => {
-    console.log("in func");
+  const handleClickLogin = () => {
     window.location.href = paths.login.root;
   };
 
-  const handleClickSignUp = async () => {
-    console.log("in func");
+  const handleClickSignUp = () => {
     window.location.href = paths.register.root;
   };
 
@@ -32,73 +38,80 @@ export function Sidebar({ items }: DocsSidebarNavProps) {
     window.location.href = paths.create.voice;
   };
 
-  const handleClickLogout = async () => {
+  const handleClickLogout = () => {
     signOut(auth)
-      .then((response) => {
-        console.log("response:", response);
+      .then(() => {
         window.location.href = "/login";
       })
-      .catch((e) => {
-        console.log(e);
-      });
-  };
-
-  const divStyle: React.CSSProperties = {
-    //
-  };
-
-  const handleNew = () => {
-    window.location.href = paths.create.root;
+      .catch(console.error);
   };
 
   return (
-    <div className="h-full flex" style={divStyle}>
+    <div className="h-full flex">
       <div
-        className={`flex flex-col h-full w-64 bg-white border-r border-gray-200 ${
+        className={`flex flex-col h-full w-64 bg-black text-white border-r border-gray-800 transition-all duration-300 ${
           sidebarVisible ? "" : "hidden"
         }`}
       >
         <div className="p-4">
           <div className="flex items-center">
-            <h1 className="text-xl font-semibold ml-2">Notefy Master!</h1>
+            <h2 className="text-xl font-semibold ml-2">𝙽𝚘𝚝𝚎𝚅𝚎𝚛𝚜𝚎</h2>
           </div>
         </div>
 
         <div className="flex-grow overflow-y-auto">
           <div className="p-4">
-            <Button variant="outline" className="w-full" onClick={handleNew}>
+            <Button
+              variant="secondary"
+              className="w-full "
+              onClick={() => (window.location.href = paths.create.root)}
+            >
+              <FaStickyNote style={{ marginRight: "10px" }} />
               New Note
             </Button>
           </div>
           <div className="p-4">
             {items.map((item, index) => (
               <div key={index} className="mb-4">
-                <h4 className="mb-2 text-sm font-semibold text-gray-800">
+                <i
+                  className={`mb-2 text-sm font-semibold transition-all duration-300 hover:text-gray-500 ${
+                    pathname === item.href ? "text-orange-500" : ""
+                  }`}
+                  // onClick={() => {window.location.href = item.href;}}
+                >
                   {item.title}
-                </h4>
-                {item?.items?.length && (
-                  <DocsSidebarNavItems items={item.items} pathname={pathname} />
-                )}
+                </i>
+                <div style={{ marginTop: "1rem" }}>
+                  {item?.items?.length && (
+                    <DocsSidebarNavItems
+                      items={item.items}
+                      pathname={pathname}
+                    />
+                  )}
+                </div>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="p-4">
+        <div
+          className="p-4"
+          style={{ display: "flex", justifyContent: "center" }}
+        >
           <Button
-            variant="outline"
-            className="w-full mb-2"
+            variant="secondary"
+            style={{ borderRadius: "100%" }}
             onClick={handleVoice}
           >
-            Voice Note
-          </Button>
-          <Button variant="outline" className="w-full">
-            Settings
+            <FaMicrophoneLines />
           </Button>
         </div>
 
         {/* Footer area for login/logout */}
-        <div className="p-4 w-full border-t border-gray-200 mt-auto">
+        <div className="p-4 w-full border-t border-gray-800 mt-auto">
+          <div style={{ margin: "1rem" }}>
+            <i>You need to logIn/SignUp for creating notes.</i>{" "}
+          </div>
           {!user?.isLogin ? (
             <>
               <Button
@@ -106,6 +119,7 @@ export function Sidebar({ items }: DocsSidebarNavProps) {
                 className="w-full mb-2"
                 onClick={handleClickLogin}
               >
+                <IoMdLogIn style={{ marginRight: "10px" }} />
                 Log in
               </Button>
               <Button
@@ -113,43 +127,28 @@ export function Sidebar({ items }: DocsSidebarNavProps) {
                 className="w-full"
                 onClick={handleClickSignUp}
               >
+                <IoMdPersonAdd style={{ marginRight: "10px" }} />
                 Sign Up
               </Button>
             </>
           ) : (
             <Button
-              variant="secondary"
+              variant="destructive"
               className="w-full"
               onClick={handleClickLogout}
             >
+              <TbLogout2 style={{ marginRight: "10px" }} />
               Logout
             </Button>
           )}
         </div>
       </div>
 
-      <div className="relative top-4 right-4 z-10">
-        <Button
-          variant="outline"
-          onClick={() => setSidebarVisible(!sidebarVisible)}
-          className="bg-white rounded-full p-1 transition-transform duration-300 hover:scale-110"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6 text-gray-600"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            style={{ transform: sidebarVisible ? "" : "rotate(180deg)" }}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M19 9l-7 7-7-7"
-            />
-          </svg>
-        </Button>
+      <div
+        className="relative top-2 z-10 p-3"
+        onClick={() => setSidebarVisible(!sidebarVisible)}
+      >
+        {sidebarVisible ? <FaArrowCircleLeft /> : <FaArrowCircleRight />}
       </div>
     </div>
   );
@@ -165,23 +164,22 @@ export function DocsSidebarNavItems({
   pathname,
 }: DocsSidebarNavItemsProps) {
   return items?.length ? (
-    <div className="grid grid-flow-row auto-rows-max text-sm gap-2">
+    <div className="grid grid-flow-row auto-rows-max text-md gap-4">
       {items.map((item, index) =>
         item.href && !item.disabled ? (
           <Link
             key={index}
             href={item.href}
-            className={cn(
-              "group flex items-center rounded-md px-2 py-1 hover:bg-gray-100 transition-colors duration-200",
+            className={`group flex items-center rounded-md px-2 py-1 hover:bg-gray-800 transition-colors duration-200 ${
               pathname === item.href
-                ? "font-medium text-primary"
-                : "text-gray-800",
-              item.disabled && "cursor-not-allowed opacity-60"
-            )}
+                ? "font-medium text-orange-500"
+                : "text-white"
+            }`}
             target={item.external ? "_blank" : ""}
             rel={item.external ? "noreferrer" : ""}
           >
-            {item.title}
+            <div>{item.title}</div>
+
             {item.label && (
               <span className="ml-2 rounded-md bg-primary-light text-xs text-primary-dark px-1.5 py-0.5">
                 {item.label}
@@ -191,34 +189,30 @@ export function DocsSidebarNavItems({
         ) : (
           <span
             key={index}
-            className={cn(
-              "flex items-center rounded-md px-2 py-1 hover:bg-gray-100 transition-colors duration-200",
-              item.disabled && "cursor-not-allowed opacity-60"
-            )}
-            style={{
-              backgroundColor: item.disabled ? "#f3f4f6" : "transparent",
-              boxShadow: item.disabled
-                ? "none"
-                : "0 2px 4px rgba(0, 0, 0, 0.1)",
-              border: item.disabled ? "none" : "1px solid #cbd5e0",
-              color: item.disabled ? "#718096" : "#4a5568",
-              transition: "width 0.3s ease-in-out",
-              cursor: "pointer",
-            }}
+            className={`flex items-center rounded-md px-2 py-1 hover:bg-white transition-colors duration-200 ${
+              item.disabled ? "cursor-not-allowed opacity-80" : ""
+            }`}
+            // style={{
+            //   backgroundColor: item.disabled ? "#f3f4f6" : "white",
+            //   boxShadow: item.disabled
+            //     ? "none"
+            //     : "0 2px 4px rgba(0, 0, 0, 0.1)",
+            //   border: item.disabled ? "none" : "1px solid #cbd5e0",
+            //   color: item.disabled ? "white" : "white",
+            //   transition: "all 0.3s ease-in-out",
+            //   cursor: item.disabled ? "not-allowed" : "pointer",
+            // }}
           >
-            <span
-              className="hover:pl-2 hover:pr-2 transition-all"
-              style={{ display: "inline-block", width: "auto" }}
-            >
+            <h2 className="hover:pl-3 hover:pr-3 transition-all">
               {item.title}
-            </span>
+            </h2>
             {item.label && (
-              <span
+              <h3
                 className="ml-2 rounded-md bg-gray-200 text-xs text-gray-600 px-1.5 py-0.5"
                 style={{ backgroundColor: "#e2e8f0" }}
               >
                 {item.label}
-              </span>
+              </h3>
             )}
           </span>
         )

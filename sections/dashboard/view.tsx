@@ -1,26 +1,23 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Sidebar } from "../../components/sidebar/view";
 import { docsConfig } from "@/config/docs";
-import { Card } from "@/components/ui/card";
-import { CardFooter } from "@/components/ui/card";
-import { CardContent } from "@/components/ui/card";
+import { Card, CardFooter, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AuthContext } from "@/provider/AuthProvider";
 import { getAsync, putAsync, deleteAsync } from "@/utilities/page";
 import {
   Dialog,
-  DialogOverlay,
   DialogContent,
-  DialogHeader,
-  DialogFooter,
-  DialogTitle,
   DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogOverlay,
+  DialogTrigger,
 } from "@/components/ui/dialog";
-
 import { v4 as uuidv4 } from "uuid";
-
 
 interface Note {
   id: string;
@@ -29,36 +26,51 @@ interface Note {
   tags?: string[];
 }
 
+interface EditNoteDialogProps {
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  editNote: Note;
+  setEditNote: (note: Note) => void;
+  handleEditNote: () => Promise<void>;
+}
+
+interface DeleteNoteDialogProps {
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  handleDeleteNote: () => Promise<void>;
+}
+
 export default function Dashboard() {
   const { user }: any = AuthContext();
-  const [notes, setNotes] = useState<any[] | undefined>(undefined);
+  const [notes, setNotes] = useState<Note[]>([]);
 
-  const [editNote, setEditNote] = useState({
+  const [editNote, setEditNote] = useState<Note>({
     id: uuidv4(),
     title: "",
     content: "",
     tags: [],
   });
-  const [deleteNoteId, setDeleteNoteId] = useState(null);
+  const [deleteNoteId, setDeleteNoteId] = useState<string | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  const getNotes = async () => {
-    try {
-      const notesData = await getAsync<any[]>("http://localhost:3000");
-      setNotes(notesData);
-    } catch (error) {
-      console.error("Error fetching notes:", error);
-    }
-  };
-
   useEffect(() => {
-    getNotes();
+    const fetchNotes = async () => {
+      try {
+        const notesData = await getAsync<Note[]>("http://localhost:3000/notes");
+        setNotes(notesData || []);
+      } catch (error) {
+        console.error("Error fetching notes:", error);
+        setNotes([]);
+      }
+    };
+
+    fetchNotes();
   }, []);
 
   const handleEditNote = async () => {
     try {
-      const updatedNote = await putAsync<any>(
+      const updatedNote = await putAsync<Note>(
         `http://localhost:3000/dashboard/${editNote.id}`,
         {
           title: editNote.title,
@@ -66,11 +78,16 @@ export default function Dashboard() {
           tags: editNote.tags || [],
         }
       );
-      console.log("Updated Note:", updatedNote);
-      setEditDialogOpen(false);
-      setNotes(
-        notes?.map((note) => (note.id === editNote.id ? updatedNote : note))
-      );
+
+      if (updatedNote) {
+        console.log("Updated Note:", updatedNote);
+        setEditDialogOpen(false);
+        setNotes(
+          notes.map((note) => (note.id === editNote.id ? updatedNote : note))
+        );
+      } else {
+        throw new Error("Failed to update the note");
+      }
     } catch (error) {
       console.error("Error updating note:", error);
     }
@@ -78,12 +95,9 @@ export default function Dashboard() {
 
   const handleDeleteNote = async () => {
     try {
-      const response = await deleteAsync<any>(
-        `http://localhost:3000/dashboard/${deleteNoteId}`
-      );
-      console.log("Delete Note Response:", response);
+      await deleteAsync(`http://localhost:3000/dashboard/${deleteNoteId}`);
       setDeleteDialogOpen(false);
-      setNotes(notes?.filter((note) => note.id !== deleteNoteId));
+      setNotes(notes.filter((note) => note.id !== deleteNoteId));
     } catch (error) {
       console.error("Error deleting note:", error);
     }
@@ -95,101 +109,26 @@ export default function Dashboard() {
         <Sidebar items={docsConfig.sidebarNav} />
       </div>
       {user?.isLogin ? (
-        <div
-          style={{
-            flex: 1,
-            backgroundImage: `url(notes/public/galaxy.jpg)`,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "row",
-              gap: "20px",
-              padding: "2rem",
-            }}
-          >
-            {notes?.map((note) => (
-              <Card
-                key={note.id}
-                style={{
-                  background: "#f9f9f9",
-                  borderRadius: "10px",
-                  boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-                  width: "100%",
-                  position: "relative",
-                  display: "flex",
-                  flexDirection: "column",
-                  transition: "transform 0.3s, box-shadow 0.3s",
-                  cursor: "pointer",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "scale(1.05)";
-                  e.currentTarget.style.boxShadow =
-                    "0px 8px 12px rgba(0, 0, 0, 0.2)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "scale(1)";
-                  e.currentTarget.style.boxShadow =
-                    "0px 4px 6px rgba(0, 0, 0, 0.1)";
-                }}
-              >
-                <div
-                  style={{
-                    position: "absolute",
-                    top: "5px",
-                    left: "5px",
-                  }}
-                >
-                  {note.icon}
-                </div>
-                <h4 style={{ textAlign: "center", marginTop: "30px" }}>
-                  {note.title}
-                </h4>
-                <CardContent
-                  style={{
-                    padding: "15px",
-                    textAlign: "center",
-                    flex: "1 1 auto",
-                  }}
-                >
-                  <CardContent style={{ fontSize: "0.9rem", color: "#555" }}>
-                    {note.content}
-                  </CardContent>
-                </CardContent>
-                <CardFooter
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    padding: "10px",
-                  }}
-                >
+        <div style={{ flex: 1, padding: "2rem" }}>
+          <div style={{ display: "flex", flexDirection: "row", gap: "20px" }}>
+            {notes.map((note) => (
+              <Card key={note.id} style={{ width: "100%" }}>
+                <h4>{note.title}</h4>
+                <CardContent>{note.content}</CardContent>
+                <CardFooter>
                   <Button
-                    variant="outline"
                     onClick={() => {
-                      setEditNote({
-                        id: note.id,
-                        title: note.title,
-                        content: note.content,
-                      });
+                      setEditNote(note);
                       setEditDialogOpen(true);
                     }}
-                    style={{ flex: "1 1 auto" }}
                   >
                     Edit
                   </Button>
-
                   <Button
-                    variant="outline"
                     onClick={() => {
                       setDeleteNoteId(note.id);
                       setDeleteDialogOpen(true);
                     }}
-                    style={{ flex: "1 1 auto", marginLeft: "10px" }}
                   >
                     Delete
                   </Button>
@@ -207,11 +146,8 @@ export default function Dashboard() {
             alignItems: "center",
             flexDirection: "column",
             fontSize: "1.5rem",
-            color: "#333",
-            backgroundColor: "#f8f9fa",
             borderRadius: "10px",
             padding: "20px",
-            boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
           }}
         >
           <svg
@@ -232,19 +168,18 @@ export default function Dashboard() {
         <DialogOverlay>
           <EditNoteDialog
             isOpen={editDialogOpen}
-            onClose={() => setEditDialogOpen(false)}
+            onOpenChange={setEditDialogOpen}
             editNote={editNote}
             setEditNote={setEditNote}
             handleEditNote={handleEditNote}
           />
         </DialogOverlay>
       )}
-      {/* Delete dialog */}
       {deleteDialogOpen && (
         <DialogOverlay>
           <DeleteNoteDialog
             isOpen={deleteDialogOpen}
-            onClose={() => setDeleteDialogOpen(false)}
+            onOpenChange={setDeleteDialogOpen}
             handleDeleteNote={handleDeleteNote}
           />
         </DialogOverlay>
@@ -253,27 +188,19 @@ export default function Dashboard() {
   );
 }
 
-interface EditNoteDialog{
-  isOpen: any,
-  onClose:any,
-
-}
-
-// EditNoteDialog component
 export function EditNoteDialog({
   isOpen,
-  onClose,
+  onOpenChange,
   editNote,
   setEditNote,
   handleEditNote,
-}) {
+}: EditNoteDialogProps) {
   return (
-    <Dialog open={isOpen} onClose={onClose}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogHeader>
         <DialogTitle>Edit Note</DialogTitle>
       </DialogHeader>
       <DialogContent>
-        {/* Your form inputs for editing */}
         <input
           type="text"
           value={editNote.title}
@@ -287,33 +214,49 @@ export function EditNoteDialog({
         />
       </DialogContent>
       <DialogFooter>
-        <Button variant="outline" onClick={onClose}>
-          Cancel
+        <Button onClick={() => onOpenChange(false)}>Cancel</Button>
+        <Button
+          onClick={() => {
+            handleEditNote();
+            onOpenChange(false);
+          }}
+        >
+          Save
         </Button>
-        <Button onClick={handleEditNote}>Save</Button>
       </DialogFooter>
     </Dialog>
   );
 }
 
-// DeleteNoteDialog component
-export function DeleteNoteDialog({ isOpen, onClose, handleDeleteNote }) {
+export function DeleteNoteDialog({
+  isOpen,
+  onOpenChange,
+  handleDeleteNote,
+}: DeleteNoteDialogProps) {
   return (
-    <Dialog open={isOpen} onClose={onClose}>
-      <DialogHeader>
-        <DialogTitle>Confirm Delete</DialogTitle>
-      </DialogHeader>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogTrigger asChild>
+        <Button variant="outline">Open Delete Confirmation</Button>
+      </DialogTrigger>
       <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Confirm Delete</DialogTitle>
+        </DialogHeader>
         <DialogDescription>
           Are you sure you want to delete this note?
         </DialogDescription>
+        <DialogFooter>
+          <Button onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button
+            onClick={() => {
+              handleDeleteNote();
+              onOpenChange(false); // Optionally close the dialog after the action
+            }}
+          >
+            Delete
+          </Button>
+        </DialogFooter>
       </DialogContent>
-      <DialogFooter>
-        <Button variant="outline" onClick={onClose}>
-          Cancel
-        </Button>
-        <Button onClick={handleDeleteNote}>Delete</Button>
-      </DialogFooter>
     </Dialog>
   );
 }

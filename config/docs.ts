@@ -1,6 +1,5 @@
 import { SidebarNavItem } from "@/types/nav";
 
-
 interface DocsConfig {
   sidebarNav: SidebarNavItem[];
 }
@@ -11,18 +10,15 @@ export const docsConfig: DocsConfig = {
       title: "Say Hello!",
       items: [
         {
-          title: "Notes",
-          icon: "radix", 
+          title: "NOTES / TODO",
+          icon: "radix",
           items: [],
-          // href: "/dashboard"
+          href: "/dashboard",
         },
         {
-          title: "Tags",
+          title: "TAGS",
           items: [],
-        },
-        {
-          title: "Tasks",
-          items: [],
+          href: "/notes/tags",
         },
       ],
     },
