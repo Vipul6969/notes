@@ -15,7 +15,7 @@ interface Tag {
 }
 
 export default function Create() {
-  const [tags, setTags] = useState<Tag[]>([]);
+  const [tag, setTag] = useState<Tag | null>(null);
   const [tagInput, setTagInput] = useState<string>("");
   const [editorText, setEditorText] = useState<string>("");
   const mdParser = new Remarkable();
@@ -26,10 +26,14 @@ export default function Create() {
 
   const handleAddTag = () => {
     if (tagInput.trim() !== "") {
-      const newTag: Tag = { id: tags.length + 1, name: tagInput.trim() };
-      setTags([...tags, newTag]);
+      const newTag: Tag = { id: 1, name: tagInput.trim() };
+      setTag(newTag);
       setTagInput("");
     }
+  };
+
+  const handleRemoveTag = () => {
+    setTag(null);
   };
 
   const handleEditorChange = ({ text }: { text: string }) => {
@@ -40,8 +44,8 @@ export default function Create() {
     try {
       const data = {
         content: editorText,
-        title: "Your title", 
-        tags: tags.map((tag) => tag.name),
+        title: "Your title",
+        tags: tag ? [tag.name] : [],
       };
       const response = await postAsync<any>(
         "http://localhost:3000/notes/create",
@@ -54,7 +58,7 @@ export default function Create() {
   };
 
   return (
-    <div style={{ display: "flex", height: "100vh" }}>
+    <div style={{ display: "flex", height: "100vh", overflow: "hidden" }}>
       <Sidebar items={docsConfig.sidebarNav} />
       <div
         style={{
@@ -64,75 +68,69 @@ export default function Create() {
           flexDirection: "column",
         }}
       >
-        <i>Create Notes</i>
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "row",
-            justifyContent: "space-between",
-          }}
-        >
-          <div style={{ flex: 1, padding: "1rem" }}>
+        <h2 style={{ marginBottom: "20px" }}>Create Notes</h2>
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <div style={{ flex: 1, marginRight: "20px" }}>
             <MdEditor
-              style={{ height: 300 }}
+              style={{
+                height: 800,
+                border: "2px dashed black",
+                backgroundColor: "GrayText",
+                color: "white",
+                fontSize:"25px"
+              }}
               value={editorText}
               renderHTML={(text) => mdParser.render(text)}
               onChange={handleEditorChange}
             />
-            <div
-              style={{
-                marginTop: "1rem ",
-                display: "flex",
-                justifyContent: "flex-end",
-              }}
-            >
-              <Button variant="outline" onClick={saveNote}>
+            <div style={{ marginTop: "1rem", textAlign: "right" }}>
+              <Button variant="secondary" onClick={saveNote}>
                 Save Note
               </Button>
             </div>
           </div>
-          <div
-            style={{
-              width: 300,
-              marginLeft: 20,
-              display: "flex",
-              flexDirection: "column",
-            }}
-          >
-            <div style={{ marginBottom: 10 }}>
-              <input
-                type="text"
-                value={tagInput}
-                onChange={handleTagInputChange}
-                placeholder="Enter tags"
-              />
-              <Button variant="outline" size="sm" onClick={handleAddTag}>
-                Add Tag
-              </Button>
-            </div>
-            <div>
-              {tags.map((tag) => (
+          <div style={{ width: 300 }}>
+            {tag ? (
+              <div style={{ marginBottom: 10 }}>
                 <span
-                  key={tag.id}
                   style={{
                     display: "inline-block",
                     background: "#e1e1e1",
                     borderRadius: "4px",
                     padding: "6px 12px",
-                    margin: "0 4px 4px 0",
-                    transition: "background 0.3s",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "#ccc";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "#e1e1e1";
+                    marginRight: "4px",
                   }}
                 >
                   {tag.name}
                 </span>
-              ))}
-            </div>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleRemoveTag}
+                  style={{ cursor: "pointer" }}
+                >
+                  Remove
+                </Button>
+              </div>
+            ) : (
+              <div style={{ marginBottom: 10 }}>
+                <input
+                  type="text"
+                  value={tagInput}
+                  onChange={handleTagInputChange}
+                  placeholder="Enter tag"
+                  style={{ width: "100%" }}
+                />
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleAddTag}
+                  style={{ marginTop: "5px", width: "100%" }}
+                >
+                  Add Tag
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>

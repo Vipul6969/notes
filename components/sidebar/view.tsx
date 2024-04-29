@@ -17,6 +17,7 @@ import { FaArrowCircleLeft } from "react-icons/fa";
 import { FaArrowCircleRight } from "react-icons/fa";
 import { FaStickyNote } from "react-icons/fa";
 
+
 export interface DocsSidebarNavProps {
   items: SidebarNavItem[];
 }
@@ -178,7 +179,7 @@ export function DocsSidebarNavItems({
             target={item.external ? "_blank" : ""}
             rel={item.external ? "noreferrer" : ""}
           >
-            <div>{item.title}</div>
+            <div>  {item.icon} {item.title}</div>
 
             {item.label && (
               <span className="ml-2 rounded-md bg-primary-light text-xs text-primary-dark px-1.5 py-0.5">
@@ -204,6 +205,7 @@ export function DocsSidebarNavItems({
             // }}
           >
             <h2 className="hover:pl-3 hover:pr-3 transition-all">
+            
               {item.title}
             </h2>
             {item.label && (
