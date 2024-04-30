@@ -11,7 +11,6 @@ export const docsConfig: DocsConfig = {
       items: [
         {
           title: "NOTES / TODO",
-          icon: "radix",
           items: [],
           href: "/dashboard",
         },

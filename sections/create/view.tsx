@@ -1,24 +1,33 @@
 "use client";
 
 import { postAsync } from "@/utilities/page";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Sidebar } from "@/components/sidebar/view";
 import { docsConfig } from "@/config/docs";
 import MdEditor from "react-markdown-editor-lite";
 import { Button } from "@/components/ui/button";
 import "react-markdown-editor-lite/lib/index.css";
 import { Remarkable } from "remarkable";
+import { jwtDecode } from "jwt-decode";
+
+
 
 interface Tag {
   id: number;
   name: string;
 }
 
+// const jwt_decode = require('jwt-decode');
+
+
 export default function Create() {
   const [tag, setTag] = useState<Tag | null>(null);
   const [tagInput, setTagInput] = useState<string>("");
   const [editorText, setEditorText] = useState<string>("");
   const mdParser = new Remarkable();
+  const [token, setToken] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+
 
   const handleTagInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setTagInput(event.target.value);
@@ -41,21 +50,37 @@ export default function Create() {
   };
 
   const saveNote = async () => {
-    try {
-      const data = {
-        content: editorText,
-        title: "Your title",
-        tags: tag ? [tag.name] : [],
-      };
-      const response = await postAsync<any>(
-        "http://localhost:3000/notes/create",
-        data
-      );
-      console.log("Note saved successfully:", response);
-    } catch (error) {
-      console.error("Error saving note:", error);
+    if (!token || !userId) {
+      console.log("Authentication token or user ID is missing.");
+      return;
     }
+  
+    const data = {
+      content: editorText,
+      title: "Your title",
+      tag: tag ? [tag.name] : [],
+    };
+  
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      "User-ID": userId.toString(), 
+    };
+  
+    const response = await postAsync<any>("/api/v1/user", data, headers);
+    console.log("Note saved successfully:", response?.data);
   };
+  
+
+  useEffect(() => {
+    const storedToken = localStorage.getItem("mySecret");
+    if (storedToken) {
+      setToken(storedToken);
+      const decoded: { user_id?: string } = jwtDecode(storedToken);
+      if (decoded.user_id) {
+        setUserId(decoded.user_id);
+      }
+    }
+  }, []);
 
   return (
     <div style={{ display: "flex", height: "100vh", overflow: "hidden" }}>
@@ -73,14 +98,15 @@ export default function Create() {
           <div style={{ flex: 1, marginRight: "20px" }}>
             <MdEditor
               style={{
-                height: 800,
+                height: 700,
                 border: "2px dashed black",
                 backgroundColor: "GrayText",
                 color: "white",
-                fontSize:"25px"
+                fontSize: "25px",
               }}
               value={editorText}
-              renderHTML={(text) => mdParser.render(text)}
+              // renderHTML={(text) => mdParser.render(text)}
+              renderHTML={(text) => <div dangerouslySetInnerHTML={{ __html: mdParser.render(text) }} />}
               onChange={handleEditorChange}
             />
             <div style={{ marginTop: "1rem", textAlign: "right" }}>

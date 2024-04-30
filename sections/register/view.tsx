@@ -4,40 +4,80 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/service/firebase";
-import { Button } from "@/components/ui/button"; 
+import { Button } from "@/components/ui/button";
+import db from "@/db/drizzle";
+import { user } from "@/db/scheme";
+import { eq } from "drizzle-orm";
+import { v4 as uuidv4 } from "uuid";
+import { serialize } from "cookie";
 
 const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (event: any) => {
+  const handleSubmit = async (event: any) => {
     event.preventDefault();
 
-    if (!email || !email.trim()) {
-      setError("Email cannot be empty.");
-      return;
-    }
+    try {
+      if (!email || !email.trim()) {
+        setError("Email cannot be empty.");
+        return;
+      }
 
-    if (!password || !password.trim()) {
-      setError("Password cannot be empty.");
-      return;
-    }
+      if (!password || !password.trim()) {
+        setError("Password cannot be empty.");
+        return;
+      }
 
-    createUserWithEmailAndPassword(auth, email, password)
-      .then((response) => {
-        console.log(response);
-        alert("User Registered Successfully.");
+      const response = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      console.log(response);
+      const { uid } = response.user;
 
-        localStorage.setItem("userEmail", email);
-        localStorage.setItem("userPassword", password);
+      const checkIfUserExists = await db
+        .select()
+        .from(user)
+        .where(eq(user.id, uid));
 
-        window.location.href = "/login";
-      })
-      .catch((error) => {
-        console.error("Error registering user:", error);
-        setError("Registration failed. Please try again later.");
+      if (checkIfUserExists.length) {
+        console.log("User Exists");
+      }
+
+      const userData = await db
+        .insert(user)
+        .values({
+          id: uid,
+          email: response.user.email || " ",
+          createdAt: response.user.metadata.creationTime || undefined,
+        })
+        .returning();
+
+      console.log(userData);
+
+      const idToken = await response.user.getIdToken();
+      const cookie = serialize(idToken, {
+        httpOnly: true,
+        path: "/",
+        maxAge: 60 * 60 * 24 * 7,
       });
+
+      localStorage.setItem("mySecret", cookie);
+      console.log("cookie:", cookie);
+
+      alert("User Registered Successfully.");
+
+      localStorage.setItem("userEmail", email);
+      localStorage.setItem("userPassword", password);
+
+      window.location.href = "/login";
+    } catch (error) {
+      console.error("Error registering user:", error);
+      setError("Registration failed. Please try again later.");
+    }
 
     setEmail("");
     setPassword("");
@@ -53,8 +93,7 @@ const Register = () => {
         height: "100vh",
       }}
     >
-
-<div
+      <div
         style={{
           display: "flex",
           alignItems: "center",
@@ -156,7 +195,7 @@ const Register = () => {
             <Button
               type="submit"
               variant="secondary"
-              style={{ width: "100%", color: "#007bff" }} 
+              style={{ width: "100%", color: "#007bff" }}
             >
               Sign Up
             </Button>
@@ -170,14 +209,15 @@ const Register = () => {
             }}
           >
             Already have an account?{" "}
-            <Link href="/login" style={{ color: "#007bff", fontWeight: "bold" }}>
+            <Link
+              href="/login"
+              style={{ color: "#007bff", fontWeight: "bold" }}
+            >
               Log in here
             </Link>
           </p>
         </div>
       </div>
-
-     
     </div>
   );
 };
