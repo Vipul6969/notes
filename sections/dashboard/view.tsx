@@ -328,6 +328,8 @@ export default function Dashboard() {
                     position: "relative",
                   }}
                 >
+                  <div style={{display:"flex" , flexDirection:"row" , justifyContent:"space-between"}}>
+                    <div>
                   {note.tag && (
                     <div
                       style={{
@@ -345,7 +347,11 @@ export default function Dashboard() {
                             "Not Available"}
                         </Badge>
                       </div>
-                      <div style={{ padding: "10px" }}>
+                     
+                    </div>
+                  )}
+                  </div>
+                     <div style={{ padding: "10px" , marginTop:"10px" }}>
                         <Popover>
                           <PopoverTrigger>
                             <IoIosArrowDropdownCircle />
@@ -383,8 +389,7 @@ export default function Dashboard() {
                           </PopoverContent>
                         </Popover>
                       </div>
-                    </div>
-                  )}
+                      </div>
                   <CardContent
                     style={{
                       textAlign: "center",
@@ -392,6 +397,7 @@ export default function Dashboard() {
                       marginBottom: "1rem",
                     }}
                   >
+                  
                     <div style={{ textAlign: "center", height: "3rem" }}>
                       <h4
                         style={{
