@@ -60,11 +60,12 @@ const Register = () => {
       console.log(userData);
 
       const idToken = await response.user.getIdToken();
-      const cookie = serialize(idToken, {
+      const cookie = serialize(idToken, JSON.stringify({
         httpOnly: true,
         path: "/",
         maxAge: 60 * 60 * 24 * 7,
-      });
+      }));
+      
 
       localStorage.setItem("mySecret", cookie);
       console.log("cookie:", cookie);
