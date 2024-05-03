@@ -8,10 +8,11 @@ import { Button } from "@/components/ui/button";
 import db from "@/db/drizzle";
 import { user } from "@/db/scheme";
 import { eq } from "drizzle-orm";
-import { v4 as uuidv4 } from "uuid";
 import { serialize } from "cookie";
+import { useToast } from "@/components/ui/use-toast";
 
 const Register = () => {
+  const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -68,7 +69,10 @@ const Register = () => {
       localStorage.setItem("mySecret", cookie);
       console.log("cookie:", cookie);
 
-      alert("User Registered Successfully.");
+      toast({
+        title: "Welcome!",
+        description: "User Registered Successfully.",
+      });
 
       localStorage.setItem("userEmail", email);
       localStorage.setItem("userPassword", password);

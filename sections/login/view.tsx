@@ -5,8 +5,10 @@ import Link from "next/link";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/service/firebase";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
 
 const Login = () => {
+  const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -27,7 +29,12 @@ const Login = () => {
     signInWithEmailAndPassword(auth, email, password)
       .then((response) => {
         console.log(response);
-        alert("Logged in successfully.");
+
+        toast({
+          title: "Welcome!",
+          description: "Logged in successfully.",
+        });
+
         try {
           window.location.href = "/dashboard";
         } catch (error) {
@@ -152,7 +159,7 @@ const Login = () => {
             <Button
               type="submit"
               variant="secondary"
-              style={{width:"100%" , color: "#1abc9c",}}
+              style={{ width: "100%", color: "#1abc9c" }}
             >
               Log In
             </Button>

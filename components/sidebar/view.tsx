@@ -65,6 +65,7 @@ export function Sidebar({ items }: DocsSidebarNavProps) {
               variant="secondary"
               className="w-full "
               onClick={() => (window.location.href = paths.create.root)}
+              disabled={!user?.isLogin}
             >
               <FaStickyNote style={{ marginRight: "10px" }} />
               New Note
@@ -82,7 +83,7 @@ export function Sidebar({ items }: DocsSidebarNavProps) {
                   {item.title}
                 </i>
                 <div style={{ marginTop: "1rem" }}>
-                  {item?.items?.length && (
+                  {user?.isLogin && item?.items?.length && (
                     <DocsSidebarNavItems
                       items={item.items}
                       pathname={pathname}
