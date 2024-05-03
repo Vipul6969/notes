@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 import db from "../../../../db/drizzle";
 import { notes } from "@/db/scheme";
 import { v4 as uuidv4 } from "uuid";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 export const POST = async (req: NextRequest, res: NextApiResponse) => {
   try {
@@ -57,3 +57,6 @@ export const GET = async (req: NextRequest, res: NextApiResponse) => {
     return Response.json({ error: error });
   }
 };
+
+
+

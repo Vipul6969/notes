@@ -10,15 +10,15 @@ export const docsConfig: DocsConfig = {
       title: "Say Hello!",
       items: [
         {
-          title: "NOTES / TODO",
+          title: "NOTES | TODO",
           items: [],
           href: "/dashboard",
         },
-        {
-          title: "TAGS",
-          items: [],
-          href: "/notes/tags",
-        },
+        // {
+        //   title: "TAGS",
+        //   items: [],
+        //   href: "/notes/tags",
+        // },
       ],
     },
   ],

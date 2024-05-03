@@ -33,9 +33,15 @@ async function postAsync<T>(url: string, body: any = {}, headers: Record<string,
 
 
 // Asynchronous PUT request function
-async function putAsync<T>(url: string, body: any = {}, options: RequestOptions = {}): Promise<T | undefined> {
+async function putAsync<T>(
+  url: string,
+  body: any = {},
+  options: RequestOptions = {}
+): Promise<T | undefined> {
   try {
-    const response: AxiosResponse<T> = await axios.put<T>(url, body, { headers: options.headers });
+    const response: AxiosResponse<T> = await axios.put<T>(url, body, {
+      headers: options.headers,
+    });
     return response.data;
   } catch (error) {
     return handleAxiosError<T>(error);
